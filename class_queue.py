@@ -6,10 +6,13 @@ class Queue:
     def push(self, value) -> None:
         self.storage.append(value)
     
-    def get(self) -> int:
+    def get(self) -> tuple[any, bool]:
         try:
             value = self.storage[0]
             self.storage.pop(0)
-            return value
+            return value, True
         except IndexError:
-            return -1
+            return [], False
+    
+    def length(self) -> int:
+        return len(self.storage)

@@ -5,16 +5,16 @@ import time
 from class_queue import Queue
 import sys
 
-CHARACTERS = r".,-~`*^)&%$#@0"
+# CHARACTERS = r".,-~`*^)&%$#@0"
 #CHARACTERS = "".join(reversed(CHARACTERS))
-#CHARACTERS = r"""$@B%8&WM*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,"^`'. """
-#CHARACTERS = "".join(reversed(CHARACTERS))
+CHARACTERS = r"""$@B%8&WM*oahkbdpqwmZO0QLCJUYXzcvunxrjft/\|()1{}[]?-_+~<>i!lI;:,"^`'. """
+CHARACTERS = "".join(reversed(CHARACTERS))
 MAX_BRIGHTNESS = 255
 
 FRAME_TIME = (1/60)
 
-WIDTH = 450
-HEIGHT = 150
+WIDTH = 220
+HEIGHT = 100
 
 
 CACHE = {}
@@ -26,10 +26,12 @@ def write_frame_to_console( frame ) -> None:
 
     for y in range(HEIGHT):
         for x in range(WIDTH):
-            if (pixel := frame[y][x]) not in CACHE:
-                CACHE[pixel] = CHARACTERS[ pixel //  (MAX_BRIGHTNESS // CHARACTERS.__len__()) -1 ]
+            if (pixel_brightness := frame[y][x]) not in CACHE:
+                brightness = pixel_brightness / MAX_BRIGHTNESS
+                ascii_repr = int(brightness * (len(CHARACTERS)-1))
+                CACHE[pixel_brightness] = CHARACTERS[ ascii_repr ]
                  
-            buffer.write(CACHE[pixel])
+            buffer.write(CACHE[pixel_brightness])
         buffer.write("\n")
 
     print( buffer.getvalue())
@@ -37,13 +39,12 @@ def write_frame_to_console( frame ) -> None:
 def print_frame(queue: Queue) -> None:
 
     while True:
-        res = queue.get()
-        if res == -1:
+        res, good = queue.get()
+        if not good:
             time.sleep(0.5)
             continue
         
             
-        
         write_frame_to_console(res)
 
 
@@ -59,6 +60,7 @@ def main(video_path: str) -> None:
         succ, frame = video.read()
         if not succ: 
             break
+        print(queue.length())
         downscaled_frame = cv2.resize(frame, (WIDTH, HEIGHT), interpolation=cv2.INTER_AREA)
         gray_downscaled_frame = cv2.cvtColor(downscaled_frame, cv2.COLOR_BGR2GRAY)
 
